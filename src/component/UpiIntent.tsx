@@ -101,14 +101,14 @@ export default function UpiIntent({
       orderId: orderId,
       txnToken: txnToken
     })
-      .then((res) => {
-        console.log(res, 'Transaction status--');
-
-        if (res?.resultInfo?.resultStatus === 'S') {
-
-          handleUpiIntentTransactionStatus()
-          startTimer()
-          Linking.openURL(res?.deepLinkInfo?.deepLink)
+    .then((res) => {
+      console.log(res, 'Transaction status--');
+      
+      if (res?.resultInfo?.resultStatus === 'S') {
+        (countDownTimer.minutes == 0 || countDownTimer.seconds == 0) && startTimer()
+        
+        handleUpiIntentTransactionStatus()
+        Linking.openURL(res?.deepLinkInfo?.deepLink)
         }
 
       })
