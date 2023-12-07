@@ -19,6 +19,10 @@ export default function UpiIntent({
 
   const { callBackUrl, orderId, txnToken } = route.params;
 
+  const [countDownTimer, setCountDownTimer] = useState({
+    minutes: 0,
+    seconds: 0,
+  });
 
   const showAlert = useCallback(
     (message: string, isSuccess: boolean, goToTop = true) => {
@@ -52,6 +56,44 @@ export default function UpiIntent({
 
 
 
+  /*----->>>> Transaction timer functionality start<<<-------*/
+  useEffect(() => {
+    const interval = setInterval(() => {
+
+      if (countDownTimer.seconds > 0) {
+        setCountDownTimer({
+          ...countDownTimer,
+          seconds: countDownTimer.seconds - 1,
+        });
+      }
+
+      if (countDownTimer.seconds === 0) {
+        if (countDownTimer.minutes === 0) {
+          clearInterval(interval);
+        } else {
+          setCountDownTimer({
+            seconds: 59,
+            minutes: countDownTimer.minutes - 1,
+          });
+        }
+      }
+    }, 1000);
+
+    return () => {
+      clearInterval(interval);
+    };
+  });
+  /*----->>>> Transaction timer functionality end<<<-------*/
+
+
+  const startTimer = () => {
+    setCountDownTimer({
+      minutes: 1,
+      seconds: 59,
+    })
+  };
+
+
   const openUpiIntentList = (() => {
 
     processTransaction({
@@ -63,10 +105,10 @@ export default function UpiIntent({
         console.log(res, 'Transaction status--');
 
         if (res?.resultInfo?.resultStatus === 'S') {
-          
+
           handleUpiIntentTransactionStatus()
+          startTimer()
           Linking.openURL(res?.deepLinkInfo?.deepLink)
-          
         }
 
       })
@@ -107,24 +149,31 @@ export default function UpiIntent({
       console.warn("I will call after 2 minutes");
       clearInterval(timer);
 
-      // clearInterval(interval);
       navigation.popToTop()
     }, 60000 * 2);
 
   })
 
-  
 
-  return (
+
+  return (<>
+
+    {(countDownTimer.minutes > 0 || countDownTimer.seconds > 0) && <View style={{ justifyContent: "center", alignItems: "center", marginTop: 35 }}>
+      <Text style={{ fontSize: 20, fontWeight: 'bold', textAlign: 'center' }} >
+        You have 0{countDownTimer.minutes} : {countDownTimer.seconds} secs left to complete this transaction
+      </Text>
+    </View>
+    }
+
+
     <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-
 
       <Button
         title="Click To Open Upi Intent List"
         onPress={openUpiIntentList}
       />
     </View>
-  );
+  </>);
 }
 
 const styles = StyleSheet.create({
