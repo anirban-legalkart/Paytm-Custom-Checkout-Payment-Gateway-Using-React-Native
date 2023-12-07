@@ -4,9 +4,10 @@ import {
   Button,
   Linking,
   StyleSheet,
-  View
+  View,
+  Text
 } from 'react-native';
-import { processTransaction } from '../Service';
+import { fetchTransactionStatus, processTransaction } from '../Service';
 
 export default function UpiIntent({
   navigation,
@@ -16,7 +17,8 @@ export default function UpiIntent({
   route: any;
 }) {
 
-  const { callBackUrl, orderId, txnToken  } = route.params;
+  const { callBackUrl, orderId, txnToken } = route.params;
+
 
   const showAlert = useCallback(
     (message: string, isSuccess: boolean, goToTop = true) => {
@@ -51,7 +53,7 @@ export default function UpiIntent({
 
 
   const openUpiIntentList = (() => {
-    
+
     processTransaction({
       paymentMode: 'UPI_INTENT',
       orderId: orderId,
@@ -61,14 +63,10 @@ export default function UpiIntent({
         console.log(res, 'Transaction status--');
 
         if (res?.resultInfo?.resultStatus === 'S') {
-          // var form = res?.bankForm?.redirectForm;
-        //   // setRedirectForm(form);
-        //   navigation.navigate('UpiCollectMerchantCheckPg', { redirectForm: form, orderId, callBackUrl })
-        // } else {
-          showAlert(res?.resultInfo?.resultMsg, false, false);
-            //  OpenDeepLinkURL(res?.deepLinkInfo?.deepLink)
-            Linking.openURL(res?.deepLinkInfo?.deepLink)
-            
+          
+          handleUpiIntentTransactionStatus()
+          Linking.openURL(res?.deepLinkInfo?.deepLink)
+          
         }
 
       })
@@ -78,11 +76,49 @@ export default function UpiIntent({
 
   });
 
- 
+
+
+
+  const handleUpiIntentTransactionStatus = (() => { //PENDING
+
+    let resultStatus = 'PENDING'
+    console.warn("resultStatus response>>>", resultStatus);
+
+    const timer = setInterval(() => {
+      if (resultStatus != 'PENDING') {  // if we recive status other then PENDING , it will clear the timeInterval
+        clearInterval(timer);
+        console.warn("<<<Inside if>>>");
+      } else {
+        console.warn("<<<Inside else>>>");
+
+        fetchTransactionStatus(orderId)
+          .then((res: any) => {
+            resultStatus = res?.resultInfo?.resultStatus
+
+            console.warn(res?.resultInfo?.resultStatus, 'Order status--');
+            res?.resultInfo?.resultStatus != 'PENDING' && navigation.navigate('PaymentStatus', { paymentStatus: res })
+          })
+
+      }
+    }, 1000);
+
+
+    setTimeout(() => { //this Will be called after 2 min
+      console.warn("I will call after 2 minutes");
+      clearInterval(timer);
+
+      // clearInterval(interval);
+      navigation.popToTop()
+    }, 60000 * 2);
+
+  })
+
+  
 
   return (
     <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-     
+
+
       <Button
         title="Click To Open Upi Intent List"
         onPress={openUpiIntentList}
@@ -92,5 +128,5 @@ export default function UpiIntent({
 }
 
 const styles = StyleSheet.create({
-  
+
 });
