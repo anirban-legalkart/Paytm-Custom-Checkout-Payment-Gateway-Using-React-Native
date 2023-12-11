@@ -11,7 +11,8 @@ import PaymentStatus from './src/component/PaymentStatus';
 import UpiCollect from './src/component/UpiCollect/UpiCollect';
 import UpiCollectMerchantCheckPg from './src/component/UpiCollect/UpiCollectMerchantCheckPg';
 import UpiIntent from './src/component/UpiIntent';
-import Wallet from './src/component/Wallet';
+import Wallet from './src/component/Wallet&SavedCards/Wallet';
+import SavedCardMerchantCheckPg from './src/component/Wallet&SavedCards/SavedCardMerchantCheckPg';
 
 const Stack = createStackNavigator();
 
@@ -83,6 +84,12 @@ export default function App() {
           <Stack.Screen
             name="NewCardMerchantCheckPg"
             component={NewCardMerchantCheckPg}
+            options={{ headerShown:false }}
+          />
+
+          <Stack.Screen
+            name="SavedCardMerchantCheckPg"
+            component={SavedCardMerchantCheckPg}
             options={{ headerShown:false }}
           />
           
